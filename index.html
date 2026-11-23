@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fiche programme</title>
+<style>
+/* Formulaire pour le kiné : une colonne, sections numérotées, sortie texte à copier en bas */
+:root{
+  --bg:#eef2f0; --surface:#ffffff; --ink:#15211c; --muted:#5a6b64; --line:#d3ddd8;
+  --accent:#1d6b57; --accent-soft:#dcece6; --flag:#b8521a; --flag-soft:#f8e6da;
+  --body:system-ui,-apple-system,"Segoe UI",sans-serif; --mono:ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1412; --surface:#17201c; --ink:#e4ebe7; --muted:#93a39c; --line:#2a3631;
+  --accent:#5ec4a4; --accent-soft:#1b332b; --flag:#f0915a; --flag-soft:#3a2418; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1412; --surface:#17201c; --ink:#e4ebe7; --muted:#93a39c; --line:#2a3631;
+  --accent:#5ec4a4; --accent-soft:#1b332b; --flag:#f0915a; --flag-soft:#3a2418; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--body);padding:0 16px 64px}
+.wrap{max-width:760px;margin:0 auto}
+header{padding:32px 0 8px;display:grid;gap:10px}
+h1{font-size:clamp(1.8rem,6vw,2.4rem);margin:0;line-height:1.1}
+h2{font-size:1.15rem;margin:0;display:flex;gap:10px;align-items:baseline}
+h2 .n{font-family:var(--mono);font-size:.8rem;color:var(--accent)}
+.sub{color:var(--muted);margin:0}
+.note{border:2px solid var(--flag);background:var(--flag-soft);border-radius:10px;padding:12px 14px;margin:0}
+.note b{color:var(--flag)}
+fieldset{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:16px;margin:16px 0 0;display:grid;gap:14px;min-width:0}
+legend{padding:0}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+label{display:grid;gap:4px;font-weight:600;font-size:.92rem;min-width:0}
+label small{font-weight:400;color:var(--muted)}
+input,select,textarea{font:inherit;font-weight:400;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;min-width:0}
+textarea{min-height:76px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:3px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+.checks{display:flex;flex-wrap:wrap;gap:8px}
+.checks label{display:flex;gap:6px;align-items:center;font-weight:400;background:var(--bg);border:1px solid var(--line);border-radius:99px;padding:4px 12px;cursor:pointer}
+.checks input{width:auto;accent-color:var(--accent)}
+.ex{border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;gap:10px;position:relative}
+.ex .hd{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+.ex .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+button{font:inherit;font-weight:700;border-radius:99px;padding:9px 16px;cursor:pointer;border:1.5px solid var(--ink);background:var(--ink);color:var(--bg)}
+button.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+button.small{padding:3px 10px;font-size:.8rem;font-weight:600}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px;position:sticky;bottom:0;background:var(--bg);padding:12px 0;border-top:1px solid var(--line)}
+#out{margin-top:16px;width:100%;min-height:220px;font-family:var(--mono);font-size:.82rem;display:none}
+#msg{color:var(--accent);font-weight:600;align-self:center}
+.part{margin:28px 0 0;padding:10px 16px;border-radius:10px;background:var(--ink);color:var(--bg);display:flex;gap:12px;align-items:baseline}
+.part span{font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;opacity:.75}
+.lab{margin:0 0 6px;font-weight:600;font-size:.92rem}
+.consent{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start;font-weight:400;background:var(--accent-soft);border:1.5px solid var(--accent);border-radius:10px;padding:12px}
+.consent input{width:18px;height:18px;margin-top:3px;accent-color:var(--accent)}
+.consent.miss{border-color:var(--flag);background:var(--flag-soft)}
+#msg.err{color:var(--flag)}
+@media (max-width:600px){.actions{position:static}}
+@media print{.actions,#out,button{display:none!important} body{background:#fff} fieldset{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <p class="sub" style="font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase">Fiche programme · patient puis kiné</p>
+  <h1>Fiche programme patient</h1>
+  <p class="sub">Le patient remplit la partie 1 (3 minutes, en salle d'attente), le kiné complète la partie 2. Le kiné décide du contenu du programme et le relit avant qu'il soit remis au patient.</p>
+  <p class="note"><b>Pas de nom de famille, pas de date de naissance, pas de numéro de dossier.</b> Un prénom ou des initiales suffisent. Cette page n'enregistre et n'envoie rien : les informations ne quittent l'appareil que lorsque le kiné copie la fiche pour l'envoyer.</p>
+</header>
+
+<noscript><p class="note" style="margin-top:12px"><b>Cette page est ouverte en aperçu : elle ne peut pas fonctionner ainsi.</b> Ouvrez-la dans Safari ou Chrome (bouton de partage → « Ouvrir dans Safari »).</p></noscript>
+<form id="f" autocomplete="off">
+<div class="part"><span>Partie 1</span><b>À remplir par le patient</b></div>
+<fieldset>
+  <legend><h2><span class="n">01</span>Vous</h2></legend>
+  <div class="row">
+    <label>Prénom ou initiales<small>Pas de nom de famille</small><input name="patient" placeholder="ex. Julie ou J.M."></label>
+    <label>Âge<input name="age" inputmode="numeric" placeholder="ex. 27"></label>
+  </div>
+  <div class="row">
+    <label>Votre sport et votre niveau<input name="sport" placeholder="ex. foot en club, régional"></label>
+    <label>Votre objectif, et pour quand<input name="objectif" placeholder="ex. rejouer un match en mars"></label>
+  </div>
+</fieldset>
+
+<fieldset>
+  <legend><h2><span class="n">02</span>Votre quotidien</h2></legend>
+  <div>
+    <p class="lab">Jours où vous pouvez faire vos exercices</p>
+    <div class="checks" id="jours">
+      <label><input type="checkbox" value="Lun">Lun</label><label><input type="checkbox" value="Mar">Mar</label><label><input type="checkbox" value="Mer">Mer</label><label><input type="checkbox" value="Jeu">Jeu</label><label><input type="checkbox" value="Ven">Ven</label><label><input type="checkbox" value="Sam">Sam</label><label><input type="checkbox" value="Dim">Dim</label>
+    </div>
+  </div>
+  <label>Temps disponible par séance<select name="dispo"><option value="">–</option><option>15 min</option><option>30 min</option><option>45 min</option><option>1 h</option><option>Plus d'1 h</option></select></label>
+  <div>
+    <p class="lab">Matériel auquel vous avez accès</p>
+    <div class="checks" id="materiel">
+      <label><input type="checkbox" value="Salle de sport">Salle de sport</label>
+      <label><input type="checkbox" value="Élastiques">Élastiques</label>
+      <label><input type="checkbox" value="Haltères">Haltères</label>
+      <label><input type="checkbox" value="Banc / chaise">Banc / chaise</label>
+      <label><input type="checkbox" value="Rien (poids du corps)">Rien (poids du corps)</label>
+      <label><input type="checkbox" value="Terrain / extérieur">Terrain / extérieur</label>
+    </div>
+  </div>
+  <label>Ce que vous aimez ou n'aimez pas faire<input name="gouts" placeholder="ex. j'aime courir, je déteste le gainage"></label>
+  <label>Ce qui vous a déjà fait arrêter des exercices<small>Facultatif</small><input name="frein" placeholder="ex. manque de temps, je ne savais plus quoi faire"></label>
+  <label class="consent"><input type="checkbox" id="consent"><span>J'accepte que mon kiné transmette ces informations et celles de ma prise en charge, <b>sans mon nom de famille</b>, à Maxime K., qui met en forme mon programme à l'aide d'outils numériques, dont un assistant d'intelligence artificielle. Mon kiné reste le seul à décider de son contenu. Je peux retirer mon accord à tout moment en le disant à mon kiné.</span></label>
+</fieldset>
+
+<div class="part"><span>Partie 2</span><b>À remplir par le kiné</b></div>
+
+<fieldset>
+  <legend><h2><span class="n">03</span>Situation</h2></legend>
+  <div class="row">
+    <label>Pathologie ou opération<input name="patho" placeholder="ex. ligamentoplastie LCA (DIDT)"></label>
+    <label>Côté<select name="cote"><option value="">–</option><option>Droit</option><option>Gauche</option><option>Les deux</option><option>Non concerné</option></select></label>
+    <label>Depuis<small>Date ou délai post-op</small><input name="delai" placeholder="ex. 4 mois"></label>
+  </div>
+  <label>Antécédents utiles<textarea name="antecedents" placeholder="ex. entorse cheville gauche récidivante"></textarea></label>
+  <label>Restrictions et contre-indications<small>Ce que le patient ne doit pas faire, et jusqu'à quand</small><textarea name="restrictions" placeholder="ex. pas de pivot ni de contact avant le test de M6"></textarea></label>
+</fieldset>
+
+<fieldset>
+  <legend><h2><span class="n">04</span>Cadre</h2></legend>
+  <div class="row">
+    <label>Phase actuelle<input name="phase" placeholder="ex. Phase 2 · renforcement"></label>
+    <label>Séances par semaine<input name="freq" placeholder="ex. 3"></label>
+    <label>Durée d'une séance<input name="duree" placeholder="ex. 45 min"></label>
+  </div>
+  <label>Critères pour passer à la phase suivante<textarea name="criteres" placeholder="ex. squat 1 jambe 3 × 8 propre ; hop test ≥ 90 %"></textarea></label>
+</fieldset>
+
+<fieldset>
+  <legend><h2><span class="n">05</span>Exercices</h2></legend>
+  <p class="sub" style="margin:0">Un bloc par exercice. Le nom courant suffit : l'illustration est ajoutée lors de la mise en forme.</p>
+  <div id="exList" style="display:grid;gap:10px"></div>
+  <div><button type="button" class="ghost" id="addEx">+ Ajouter un exercice</button></div>
+</fieldset>
+
+<fieldset>
+  <legend><h2><span class="n">06</span>Sécurité et suivi</h2></legend>
+  <label>Signaux d'arrêt propres à ce patient<small>En plus des règles générales (douleur vive, gonflement, instabilité)</small><textarea name="alertes" placeholder="ex. douleur > 3/10 au genou pendant les sauts"></textarea></label>
+  <label>Message personnel au patient<small>Facultatif</small><textarea name="message" placeholder="ex. La régularité compte plus que la charge."></textarea></label>
+  <div class="row">
+    <label>Prochain rendez-vous<input name="rdv" placeholder="ex. dans 3 semaines"></label>
+    <label>Votre nom (en-tête du programme)<input name="kine" placeholder="ex. Cabinet X · M. Y"></label>
+  </div>
+</fieldset>
+
+<div class="actions">
+  <button type="button" id="share" hidden>Partager la fiche</button>
+  <button type="button" id="copy">Copier la fiche</button>
+  <button type="button" class="ghost" id="dl">Télécharger (.txt)</button>
+  <button type="button" class="ghost" id="reset">Vider la fiche</button>
+  <span id="msg" role="status"></span>
+</div>
+<textarea id="out" readonly aria-label="Texte de la fiche"></textarea>
+</form>
+</div>
+
+<script>
+(function(){
+const f=document.getElementById('f'), list=document.getElementById('exList');
+const SEANCES=['Séance A','Séance B','Séance C','Échauffement','Tous les jours'];
+let n=0;
+function addEx(){
+  n++;
+  const d=document.createElement('div');d.className='ex';
+  d.innerHTML=`<div class="hd"><span>Exercice</span><button type="button" class="ghost small">Retirer</button></div>
+  <div class="grid">
+    <label style="grid-column:1/-1">Nom<input data-k="nom" placeholder="ex. Squat goblet"></label>
+    <label>Séance<select data-k="seance">${SEANCES.map(s=>`<option>${s}</option>`).join('')}</select></label>
+    <label>Séries × rép.<input data-k="series" placeholder="3 × 10"></label>
+    <label>Intensité<input data-k="intensite" placeholder="RPE 7 / 8 kg"></label>
+    <label>Repos<input data-k="repos" placeholder="90 s"></label>
+  </div>
+  <label>Consigne d'exécution<input data-k="consigne" placeholder="ex. genou aligné avec le 2e orteil"></label>
+  <label>Attention / progression<input data-k="attention" placeholder="ex. +2 kg si 3 × 10 facile"></label>`;
+  d.querySelector('button').addEventListener('click',()=>{d.remove();renum();});
+  list.appendChild(d);renum();
+}
+function renum(){list.querySelectorAll('.ex .hd span').forEach((s,i)=>s.textContent='Exercice '+(i+1));}
+document.getElementById('addEx').addEventListener('click',addEx);
+addEx();addEx();addEx();
+
+function build(){
+  const v=k=>(f.elements[k]&&f.elements[k].value||'').trim()||'–';
+  const mat=[...document.querySelectorAll('#materiel input:checked')].map(c=>c.value).join(', ')||'–';
+  const L=[];
+  L.push('FICHE PROGRAMME PATIENT');
+  L.push('');
+  const jours=[...document.querySelectorAll('#jours input:checked')].map(c=>c.value).join(', ')||'–';
+  L.push('# Partie patient');
+  L.push('Consentement transmission : oui ('+new Date().toLocaleDateString('fr-BE')+')');
+  L.push('Prénom/initiales : '+v('patient'));
+  L.push('Âge : '+v('age'));
+  L.push('Sport et niveau : '+v('sport'));
+  L.push('Objectif et échéance : '+v('objectif'));
+  L.push('Jours disponibles : '+jours);
+  L.push('Temps par séance : '+v('dispo'));
+  L.push('Matériel : '+mat);
+  L.push('Aime / n\'aime pas : '+v('gouts'));
+  L.push('Freins passés : '+v('frein'));
+  L.push('');
+  L.push('# Partie kiné');
+  L.push('');
+  L.push('# Situation');
+  L.push('Pathologie/opération : '+v('patho'));
+  L.push('Côté : '+v('cote'));
+  L.push('Depuis : '+v('delai'));
+  L.push('Antécédents : '+v('antecedents'));
+  L.push('Restrictions : '+v('restrictions'));
+  L.push('');
+  L.push('# Cadre');
+  L.push('Phase actuelle : '+v('phase'));
+  L.push('Séances/semaine : '+v('freq'));
+  L.push('Durée : '+v('duree'));
+  L.push('Critères de passage : '+v('criteres'));
+  L.push('');
+  L.push('# Exercices');
+  list.querySelectorAll('.ex').forEach((e,i)=>{
+    const g=k=>(e.querySelector(`[data-k="${k}"]`).value||'').trim();
+    if(!g('nom'))return;
+    L.push(`${i+1}. ${g('nom')} | ${g('seance')} | ${g('series')||'–'} | ${g('intensite')||'–'} | repos ${g('repos')||'–'}`);
+    if(g('consigne'))L.push('   Consigne : '+g('consigne'));
+    if(g('attention'))L.push('   Attention : '+g('attention'));
+  });
+  L.push('');
+  L.push('# Sécurité et suivi');
+  L.push('Signaux d\'arrêt : '+v('alertes'));
+  L.push('Message au patient : '+v('message'));
+  L.push('Prochain RDV : '+v('rdv'));
+  L.push('Kiné (en-tête) : '+v('kine'));
+  return L.join('\n');
+}
+const out=document.getElementById('out'), msg=document.getElementById('msg');
+const say=(t,err)=>{msg.textContent=t;msg.classList.toggle('err',!!err);setTimeout(()=>{if(msg.textContent===t)msg.textContent=''},5000)};
+const consent=document.getElementById('consent');
+consent.addEventListener('change',()=>consent.closest('.consent').classList.remove('miss'));
+function ok(){
+  if(consent.checked)return true;
+  const box=consent.closest('.consent');box.classList.add('miss');box.scrollIntoView({behavior:'smooth',block:'center'});
+  say('Le patient doit d\'abord cocher son accord (partie 1).',true);return false;
+}
+const shareBtn=document.getElementById('share'), copyBtn=document.getElementById('copy');
+if(navigator.share){shareBtn.hidden=false;copyBtn.classList.add('ghost');}
+shareBtn.addEventListener('click',async()=>{
+  if(!ok())return;
+  const t=build();out.value=t;out.style.display='block';
+  const who=(f.elements.patient.value||'').trim();
+  try{await navigator.share({title:'Fiche programme'+(who?' – '+who:''),text:t});say('Fiche partagée.');}
+  catch(e){if(e&&e.name==='AbortError')return;say('Le partage n\'a pas marché : utilisez « Copier la fiche ».',true);}
+});
+copyBtn.addEventListener('click',async()=>{
+  if(!ok())return;
+  const t=build();out.value=t;out.style.display='block';
+  try{await navigator.clipboard.writeText(t);say('Fiche copiée. Collez-la dans votre message.');}
+  catch(e){out.select();try{document.execCommand('copy');say('Fiche copiée. Collez-la dans votre message.');}catch(_){say('Sélectionnez le texte ci-dessous et copiez-le.');}}
+});
+document.getElementById('dl').addEventListener('click',()=>{
+  if(!ok())return;
+  const t=build();const p=(f.elements.patient.value||'patient').trim().replace(/[^\p{L}\p{N}]+/gu,'-');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/plain;charset=utf-8'}));
+  a.download='fiche-'+p+'.txt';document.body.appendChild(a);a.click();a.remove();
+});
+document.getElementById('reset').addEventListener('click',()=>{
+  if(!confirm('Vider toute la fiche ?'))return;
+  f.reset();list.innerHTML='';addEx();addEx();addEx();out.value='';out.style.display='none';
+});
+})();
+</script>
+</body>
+</html>
