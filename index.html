@@ -186,6 +186,31 @@ function renum(){list.querySelectorAll('.ex .hd span').forEach((s,i)=>s.textCont
 document.getElementById('addEx').addEventListener('click',addEx);
 addEx();addEx();addEx();
 
+/* Lien avec ?exemple : fiche pré-remplie avec un patient fictif, pour une démo (la case d'accord reste à cocher) */
+if(/[?&]exemple\b/.test(location.search)){
+  const set=(k,v)=>{if(f.elements[k])f.elements[k].value=v;};
+  set('patient','Thomas (exemple fictif)');set('age','24');
+  set('sport','Foot en club, niveau régional');set('objectif','Rejouer un match en mars');
+  ['Lun','Mer','Ven'].forEach(j=>{const c=document.querySelector(`#jours input[value="${j}"]`);if(c)c.checked=true;});
+  set('dispo','45 min');
+  ['Salle de sport','Élastiques'].forEach(m=>{const c=document.querySelector(`#materiel input[value="${m}"]`);if(c)c.checked=true;});
+  set('gouts','J\'aime courir, je trouve le gainage ennuyeux');set('frein','Je ne savais plus quels exercices faire');
+  set('patho','Ligamentoplastie LCA (DIDT)');set('cote','Droit');set('delai','4 mois');
+  set('antecedents','Entorse cheville gauche en 2024');
+  set('restrictions','Pas de pivot ni de contact avant le feu vert du chirurgien');
+  set('phase','Phase 1 · renforcement');set('freq','3');set('duree','45 min');
+  set('criteres','Squat sur une jambe 3 × 8 sans compensation ; aucun gonflement après les séances');
+  const EX=[
+    ['Squat goblet','Séance A','3 × 10','RPE 6-7','90 s','Genoux alignés avec les pieds',''],
+    ['Split squat','Séance A','3 × 8 / jambe','RPE 7','90 s','Genou avant aligné avec le 2e orteil','Commencer par la jambe saine'],
+    ['Marche latérale élastique','Séance B','3 × 12 pas / côté','Modéré','45 s','Le genou ne rentre pas vers l\'intérieur','']
+  ];
+  list.querySelectorAll('.ex').forEach((e,i)=>{const x=EX[i];if(!x)return;
+    ['nom','seance','series','intensite','repos','consigne','attention'].forEach((k,j)=>{e.querySelector(`[data-k="${k}"]`).value=x[j];});});
+  set('alertes','Douleur > 3/10 au genou pendant les sauts, ou gonflement le lendemain');
+  set('message','La régularité compte plus que la charge.');set('rdv','Dans 3 semaines');set('kine','Cabinet exemple');
+}
+
 function build(){
   const v=k=>(f.elements[k]&&f.elements[k].value||'').trim()||'–';
   const mat=[...document.querySelectorAll('#materiel input:checked')].map(c=>c.value).join(', ')||'–';
