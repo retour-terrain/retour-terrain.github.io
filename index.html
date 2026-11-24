@@ -42,6 +42,11 @@ input:focus,select:focus,textarea:focus{outline:3px solid var(--accent);outline-
 .checks input{width:auto;accent-color:var(--accent)}
 .ex{border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;gap:10px;position:relative}
 .ex .hd{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+.opt{border:1.5px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:12px}
+.opt h3{margin:0;font-size:1.05rem;display:flex;gap:10px;align-items:baseline}
+.opt h3 span{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+.checks.sel label{font-size:.9rem}
+.checks.sel label:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
 .ex .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
 button{font:inherit;font-weight:700;border-radius:99px;padding:9px 16px;cursor:pointer;border:1.5px solid var(--ink);background:var(--ink);color:var(--bg)}
 button.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
@@ -135,9 +140,21 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 
 <fieldset>
   <legend><h2><span class="n">05</span>Exercices</h2></legend>
-  <p class="sub" style="margin:0">Un bloc par exercice. Le nom courant suffit : l'illustration est ajoutée lors de la mise en forme.</p>
-  <div id="exList" style="display:grid;gap:10px"></div>
-  <div><button type="button" class="ghost" id="addEx">+ Ajouter un exercice</button></div>
+  <p class="sub" style="margin:0">Deux façons de faire, au choix : l'une, l'autre, ou les deux.</p>
+  <div class="opt">
+    <h3><span>Option 1</span>Exercice par exercice</h3>
+    <p class="sub" style="margin:0">Vous précisez chaque exercice. Le nom courant suffit : l'illustration est ajoutée lors de la mise en forme.</p>
+    <div id="exList" style="display:grid;gap:10px"></div>
+    <div><button type="button" class="ghost" id="addEx">+ Ajouter un exercice</button></div>
+  </div>
+  <div class="opt">
+    <h3><span>Option 2</span>Sélection rapide</h3>
+    <p class="sub" style="margin:0">Cochez les exercices à inclure : ils sont tous déjà illustrés. Les dosages et consignes vous sont proposés dans le programme, que vous validez ou corrigez à la relecture.</p>
+    <div id="sel" style="display:grid;gap:12px"><div class="grp"><p class="lab">Échauffement et mobilité</p><div class="checks sel"><label><input type="checkbox" value="Vélo ou elliptique">Vélo ou elliptique</label><label><input type="checkbox" value="Chat-vache">Chat-vache</label><label><input type="checkbox" value="Open book">Open book</label><label><input type="checkbox" value="Hanches 90/90">Hanches 90/90</label><label><input type="checkbox" value="Genou au mur">Genou au mur</label><label><input type="checkbox" value="Pont fessier">Pont fessier</label></div></div><div class="grp"><p class="lab">Bas du corps</p><div class="checks sel"><label><input type="checkbox" value="Squat goblet">Squat goblet</label><label><input type="checkbox" value="Soulevé de terre roumain">Soulevé de terre roumain</label><label><input type="checkbox" value="Hip thrust">Hip thrust</label><label><input type="checkbox" value="Leg curl couché">Leg curl couché</label><label><input type="checkbox" value="Nordic hamstrings">Nordic hamstrings</label><label><input type="checkbox" value="Split squat / split squat bulgare">Split squat / split squat bulgare</label><label><input type="checkbox" value="Montées sur banc">Montées sur banc</label><label><input type="checkbox" value="Mollets debout">Mollets debout</label><label><input type="checkbox" value="Adducteurs / Copenhagen plank">Adducteurs / Copenhagen plank</label><label><input type="checkbox" value="Soulevé de terre roumain sur une jambe">Soulevé de terre roumain sur une jambe</label><label><input type="checkbox" value="Marche latérale élastique">Marche latérale élastique</label></div></div><div class="grp"><p class="lab">Épaule et haut du corps</p><div class="checks sel"><label><input type="checkbox" value="Rotation externe (élastique ou poulie)">Rotation externe (élastique ou poulie)</label><label><input type="checkbox" value="Rotation interne à la poulie">Rotation interne à la poulie</label><label><input type="checkbox" value="Pompes scapulaires au mur">Pompes scapulaires au mur</label><label><input type="checkbox" value="Glissés au mur">Glissés au mur</label><label><input type="checkbox" value="Prone Y, T et W">Prone Y, T et W</label><label><input type="checkbox" value="Rowing assis à la poulie">Rowing assis à la poulie</label><label><input type="checkbox" value="Rowing haltère sur banc incliné">Rowing haltère sur banc incliné</label><label><input type="checkbox" value="Pompes inclinées">Pompes inclinées</label><label><input type="checkbox" value="Floor press haltères">Floor press haltères</label><label><input type="checkbox" value="Landmine press">Landmine press</label><label><input type="checkbox" value="Tirage vertical prise neutre">Tirage vertical prise neutre</label><label><input type="checkbox" value="Face pull">Face pull</label><label><input type="checkbox" value="Curl biceps">Curl biceps</label><label><input type="checkbox" value="Extension triceps à la poulie">Extension triceps à la poulie</label></div></div><div class="grp"><p class="lab">Gainage</p><div class="checks sel"><label><input type="checkbox" value="Dead bug">Dead bug</label><label><input type="checkbox" value="Pallof press">Pallof press</label><label><input type="checkbox" value="Gainage latéral">Gainage latéral</label><label><input type="checkbox" value="Farmer carry">Farmer carry</label></div></div><div class="grp"><p class="lab">Sauts, course et terrain</p><div class="checks sel"><label><input type="checkbox" value="Pogos">Pogos</label><label><input type="checkbox" value="Squat jump">Squat jump</label><label><input type="checkbox" value="Sauts sur box">Sauts sur box</label><label><input type="checkbox" value="Saut en longueur">Saut en longueur</label><label><input type="checkbox" value="Sauts latéraux">Sauts latéraux</label><label><input type="checkbox" value="Sauts sur une jambe">Sauts sur une jambe</label><label><input type="checkbox" value="Décélérations">Décélérations</label><label><input type="checkbox" value="Changements de direction">Changements de direction</label><label><input type="checkbox" value="Navette 5-10-5">Navette 5-10-5</label><label><input type="checkbox" value="Accélérations / sprints">Accélérations / sprints</label><label><input type="checkbox" value="Poussée de traîneau">Poussée de traîneau</label><label><input type="checkbox" value="Lancer rotatif au médecine-ball">Lancer rotatif au médecine-ball</label></div></div></div>
+    <label>Autres exercices<small>Non présents dans la liste</small><input name="selautres" placeholder="ex. proprioception sur coussin"></label>
+    <label>Niveau de départ<select name="niveau"><option>Débutant / reprise</option><option selected>Intermédiaire</option><option>Avancé / retour au sport</option></select></label>
+    <label>Remarques sur la sélection<small>Facultatif : priorités, charges, précautions</small><textarea name="selnote" placeholder="ex. priorité aux ischios ; pas de charge au-dessus de la tête"></textarea></label>
+  </div>
 </fieldset>
 
 <fieldset>
@@ -207,6 +224,8 @@ if(/[?&]exemple\b/.test(location.search)){
   ];
   list.querySelectorAll('.ex').forEach((e,i)=>{const x=EX[i];if(!x)return;
     ['nom','seance','series','intensite','repos','consigne','attention'].forEach((k,j)=>{e.querySelector(`[data-k="${k}"]`).value=x[j];});});
+  ['Pont fessier','Hip thrust','Leg curl couché','Mollets debout','Dead bug','Gainage latéral','Squat jump'].forEach(n=>{const c=document.querySelector(`#sel input[value="${n}"]`);if(c)c.checked=true;});
+  set('selautres','Proprioception sur coussin');set('niveau','Débutant / reprise');set('selnote','Priorité aux ischios ; sauts seulement si aucun gonflement');
   set('alertes','Douleur > 3/10 au genou pendant les sauts, ou gonflement le lendemain');
   set('message','La régularité compte plus que la charge.');set('rdv','Dans 3 semaines');set('kine','Cabinet exemple');
 }
@@ -253,6 +272,15 @@ function build(){
     if(g('consigne'))L.push('   Consigne : '+g('consigne'));
     if(g('attention'))L.push('   Attention : '+g('attention'));
   });
+  const sel=[...document.querySelectorAll('#sel .grp')].map(g=>{const c=[...g.querySelectorAll('input:checked')].map(i=>i.value);return c.length?g.querySelector('.lab').textContent+' : '+c.join(', '):null;}).filter(Boolean);
+  if(sel.length||v('selautres')!=='–'){
+    L.push('');
+    L.push('# Sélection rapide (dosages à proposer, validés par le kiné à la relecture)');
+    sel.forEach(x=>L.push('- '+x));
+    if(v('selautres')!=='–')L.push('- Autres : '+v('selautres'));
+    L.push('Niveau de départ : '+v('niveau'));
+    L.push('Remarques : '+v('selnote'));
+  }
   L.push('');
   L.push('# Sécurité et suivi');
   L.push('Signaux d\'arrêt : '+v('alertes'));
