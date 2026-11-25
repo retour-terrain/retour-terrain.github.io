@@ -147,7 +147,15 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
       <label><input type="checkbox" value="Banc / chaise">Banc / chaise</label>
       <label><input type="checkbox" value="Rien (poids du corps)">Rien (poids du corps)</label>
       <label><input type="checkbox" value="Terrain / extérieur">Terrain / extérieur</label>
+      <label><input type="checkbox" value="Tapis de sol">Tapis de sol</label>
+      <label><input type="checkbox" value="Marche / step">Marche / step</label>
+      <label><input type="checkbox" value="Gros ballon">Gros ballon</label>
+      <label><input type="checkbox" value="Rouleau de massage">Rouleau de massage</label>
+      <label><input type="checkbox" value="Kettlebell">Kettlebell</label>
+      <label><input type="checkbox" value="Vélo d'appartement">Vélo d'appartement</label>
+      <label><input type="checkbox" id="matother" value="Autre">Autre</label>
     </div>
+    <label id="matautrebox" hidden style="margin-top:8px">Quel autre matériel ?<input name="matautre" placeholder="ex. sangle, poids de cheville, trampoline"></label>
   </div>
   <label>Ce que vous aimez ou n'aimez pas faire<input name="gouts" placeholder="ex. j'aime courir, je déteste le gainage"></label>
   <label>Ce qui vous a déjà fait arrêter des exercices<small>Facultatif</small><input name="frein" placeholder="ex. manque de temps, je ne savais plus quoi faire"></label>
@@ -274,7 +282,7 @@ if(/[?&]exemple\b/.test(location.search)){
 
 function build(){
   const v=k=>(f.elements[k]&&f.elements[k].value||'').trim()||'–';
-  const mat=[...document.querySelectorAll('#materiel input:checked')].map(c=>c.value).join(', ')||'–';
+  const mat=[...document.querySelectorAll('#materiel input:checked')].map(c=>c.value==='Autre'?'Autre : '+((f.elements.matautre&&f.elements.matautre.value.trim())||'non précisé'):c.value).join(', ')||'–';
   const L=[];
   L.push('FICHE PROGRAMME PATIENT');
   L.push('');
@@ -343,6 +351,12 @@ function ok(){
 const shareBtn=document.getElementById('share'), copyBtn=document.getElementById('copy'), doneBtn=document.getElementById('done');
 if(navigator.share){shareBtn.hidden=false;copyBtn.classList.add('ghost');}
 
+/* ---------- matériel « Autre » ---------- */
+const matother=document.getElementById('matother'), matbox=document.getElementById('matautrebox');
+const syncMat=()=>{matbox.hidden=!matother.checked;};
+matother.addEventListener('change',()=>{syncMat();if(matother.checked)f.elements.matautre.focus();});
+syncMat();
+
 /* ---------- recherche dans la sélection rapide ---------- */
 const selq=document.getElementById('selq'), selcount=document.getElementById('selcount'), selnone=document.getElementById('selnone');
 const norm=t=>t.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
@@ -394,6 +408,7 @@ function restore(d){
   ex.forEach(o=>{addEx();const e=list.lastElementChild;Object.entries(o).forEach(([k,v])=>{const i=e.querySelector('[data-k="'+k+'"]');if(i)i.value=v;});});
   out.value='';out.style.display='none';
   if(typeof filterSel==='function'){selq.value='';filterSel();}
+  if(typeof syncMat==='function')syncMat();
 }
 function label(d){return ((d.fields&&d.fields.patient)||'').trim()||'Sans prénom';}
 function purge(){const all=store.get();if(!all)return;let ch=false;const now=Date.now();Object.keys(all).forEach(k=>{if(now-all[k].savedAt>TTL){delete all[k];ch=true;}});if(ch)store.set(all);}
