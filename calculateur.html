@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Temps gagné</title>
+<style>
+/* Calculateur : vos chiffres à gauche, résultat à droite (empilés sur mobile) */
+:root{
+  --bg:#eef2f0; --surface:#ffffff; --ink:#15211c; --muted:#5a6b64; --line:#d3ddd8;
+  --accent:#1d6b57; --accent-soft:#dcece6; --flag:#b8521a; --flag-soft:#f8e6da;
+  --display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1412; --surface:#17201c; --ink:#e4ebe7; --muted:#93a39c; --line:#2a3631;
+  --accent:#5ec4a4; --accent-soft:#1b332b; --flag:#f0915a; --flag-soft:#3a2418; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1412; --surface:#17201c; --ink:#e4ebe7; --muted:#93a39c; --line:#2a3631;
+  --accent:#5ec4a4; --accent-soft:#1b332b; --flag:#f0915a; --flag-soft:#3a2418; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--body);padding:0 16px 56px}
+.wrap{max-width:980px;margin:0 auto}
+header{padding:32px 0 20px;display:grid;gap:10px}
+h1,h2{font-family:var(--display);font-weight:800;text-transform:uppercase;line-height:1;margin:0}
+h1{font-size:clamp(2.4rem,8vw,4rem)}
+h2{font-size:1.5rem}
+.eyebrow{font-family:var(--mono);font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.sub{color:var(--muted);margin:0;max-width:62ch}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:18px;min-width:0}
+.f{display:grid;gap:6px}
+.f .top{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.f label,.f .lbl{font-weight:700}
+.f small{color:var(--muted);font-size:.86rem}
+.f output{font-family:var(--mono);font-size:.95rem;color:var(--accent);white-space:nowrap}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.num{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.num input{font:inherit;width:96px;padding:7px 10px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+input:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.toggle{display:flex;gap:6px;flex-wrap:wrap}
+.toggle button{font:inherit;font-weight:700;font-size:.9rem;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);padding:7px 14px;border-radius:99px;cursor:pointer}
+.toggle button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.res{position:sticky;top:12px}
+.big{font-family:var(--display);font-weight:800;font-size:clamp(3rem,10vw,4.6rem);line-height:.9;color:var(--accent);font-variant-numeric:tabular-nums}
+.big.time{color:var(--ink)}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;gap:2px;min-width:0}
+.kpi small{font-family:var(--mono);font-size:.64rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.kpi b{font-size:1.25rem;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.info{background:var(--accent-soft);border-radius:10px;padding:12px 14px;margin:0;font-size:.94rem}
+.warn{border:2px solid var(--flag);background:var(--flag-soft);border-radius:10px;padding:12px 14px;margin:0}
+.warn b{color:var(--flag)}
+section{margin-top:28px;display:grid;gap:10px}
+section ul{margin:0;padding-left:20px;color:var(--muted);display:grid;gap:4px;max-width:70ch}
+footer{margin-top:32px;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:.85rem}
+@media (max-width:760px){.grid{grid-template-columns:1fr}.res{position:static}}
+@media print{body{background:#fff}.res{position:static}.toggle button{border-color:#999}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <span class="eyebrow">Programmes illustrés · simulation</span>
+  <h1>Temps gagné</h1>
+  <p class="sub">Le temps que vous récupérez quand vous ne mettez plus vos programmes en forme vous-même, et ce qu'il représente en séances. Remplacez les valeurs par celles de votre cabinet.</p>
+</header>
+
+<div class="grid">
+  <div class="panel" id="inputs">
+    <h2>Vos chiffres</h2>
+    <div class="f">
+      <span class="lbl">Tarif d'une séance</span>
+      <div class="num"><input id="tarif" type="number" min="0" step="0.5" value="39" aria-label="Tarif en euros"> € pour <input id="duree" type="number" min="5" step="5" value="30" aria-label="Durée en minutes"> min</div>
+      <small>Montant total d'une séance (part du patient + part de la mutuelle).</small>
+    </div>
+    <div class="f">
+      <div class="top"><label for="avant">Temps actuel par programme</label><output id="o-avant" for="avant">45 min</output></div>
+      <input id="avant" type="range" min="10" max="120" step="5" value="45">
+      <small>Choisir les exercices, rédiger, mettre en forme.</small>
+    </div>
+    <div class="f">
+      <div class="top"><label for="apres">Temps avec la fiche</label><output id="o-apres" for="apres">15 min</output></div>
+      <input id="apres" type="range" min="5" max="45" step="5" value="15">
+      <small>Compléter votre partie de la fiche et relire le programme. Le patient remplit sa partie seul. Durée réelle à mesurer pendant le test.</small>
+    </div>
+    <div class="f">
+      <div class="top"><label for="nb">Programmes par mois</label><output id="o-nb" for="nb">10</output></div>
+      <input id="nb" type="range" min="1" max="60" step="1" value="10">
+    </div>
+    <div class="f">
+      <span class="lbl" id="plein-lbl">Votre agenda</span>
+      <div class="toggle" id="plein" role="group" aria-labelledby="plein-lbl">
+        <button type="button" data-v="1" aria-pressed="true">Complet</button>
+        <button type="button" data-v="0" aria-pressed="false">Avec des créneaux libres</button>
+      </div>
+      <small>Agenda complet : le temps récupéré peut accueillir des séances supplémentaires.</small>
+    </div>
+  </div>
+
+  <div class="panel res" aria-live="polite">
+    <span class="eyebrow" id="r-label">Valeur du temps récupéré par mois</span>
+    <div class="big" id="r-big">390 €</div>
+    <p class="sub" id="r-sub">Soit 4 290 € sur 11 mois de travail, si ce temps accueille des séances.</p>
+    <div class="kpis">
+      <div class="kpi"><small>Temps récupéré / mois</small><b id="k-tmois">5 h</b></div>
+      <div class="kpi"><small>Temps récupéré / an</small><b id="k-tan">55 h</b></div>
+      <div class="kpi"><small>Séances possibles / mois</small><b id="k-seances">10</b></div>
+      <div class="kpi"><small>Temps gagné / programme</small><b id="k-unit">30 min</b></div>
+    </div>
+    <p class="warn" id="r-warn" hidden></p>
+    <p class="info" id="r-info">Chaque programme vous rend 30 min, soit l'équivalent d'une séance.</p>
+  </div>
+</div>
+
+<section>
+  <h2>Comment c'est calculé</h2>
+  <ul>
+    <li>Valeur d'une minute = tarif ÷ durée de la séance.</li>
+    <li>Temps récupéré = (temps actuel − temps avec la fiche) × programmes par mois.</li>
+    <li>Une année compte 11 mois de travail.</li>
+  </ul>
+</section>
+
+<footer>Simulation indicative, établie à partir de vos propres chiffres. Elle ne tient pas compte de vos charges ni de la fiscalité.</footer>
+</div>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const eur=n=>{const r=Math.round(n*100)/100;return r.toLocaleString('fr-BE',{style:'currency',currency:'EUR',minimumFractionDigits:r%1?2:0,maximumFractionDigits:2});};
+const hm=m=>{m=Math.round(m);const h=Math.floor(m/60),r=m%60;return h?(r?`${h} h ${String(r).padStart(2,'0')}`:`${h} h`):`${r} min`;};
+const fmt=n=>n.toLocaleString('fr-BE',{maximumFractionDigits:1});
+let plein=true;
+function calc(){
+  const tarif=Math.max(0,+$('tarif').value||0), duree=Math.max(5,+$('duree').value||30);
+  const avant=+$('avant').value, apres=+$('apres').value, nb=+$('nb').value;
+  $('o-avant').textContent=avant+' min';$('o-apres').textContent=apres+' min';$('o-nb').textContent=nb;
+  const gain=Math.max(0,avant-apres), tMois=gain*nb, valMois=gain*nb*tarif/duree, seances=tMois/duree;
+  $('k-tmois').textContent=hm(tMois);$('k-tan').textContent=hm(tMois*11);
+  $('k-seances').textContent=fmt(seances);$('k-unit').textContent=hm(gain);
+  const big=$('r-big'), warn=$('r-warn'), info=$('r-info');
+  if(plein){
+    big.classList.remove('time');
+    $('r-label').textContent='Valeur du temps récupéré par mois';
+    big.textContent=eur(valMois);
+    $('r-sub').textContent=`Soit ${eur(valMois*11)} sur 11 mois de travail, si ce temps accueille des séances.`;
+  } else {
+    big.classList.add('time');
+    $('r-label').textContent='Temps récupéré par mois';
+    big.textContent=hm(tMois);
+    $('r-sub').textContent=`Du temps rendu pour l'administratif ou vos soirées. À votre tarif, il représente ${eur(valMois)} par mois.`;
+  }
+  const s=gain/duree;
+  info.hidden=!gain;
+  info.textContent=`Chaque programme vous rend ${hm(gain)}, soit ${s===1?"l'équivalent d'une séance":fmt(s)+' séance'+(s>=2?'s':'')}.`;
+  warn.hidden=avant>apres;
+  if(avant<=apres)warn.innerHTML='<b>Pas de gain de temps :</b> avec ces valeurs, la fiche prend autant de temps que votre méthode actuelle.';
+}
+$('inputs').addEventListener('input',calc);
+$('plein').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;plein=b.dataset.v==='1';
+  document.querySelectorAll('#plein button').forEach(x=>x.setAttribute('aria-pressed',x===b));calc();});
+calc();
+})();
+</script>
+</body>
+</html>
