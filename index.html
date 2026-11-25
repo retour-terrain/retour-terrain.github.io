@@ -62,6 +62,18 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .consent input{width:18px;height:18px;margin-top:3px;accent-color:var(--accent)}
 .consent.miss{border-color:var(--flag);background:var(--flag-soft)}
 #msg.err{color:var(--flag)}
+.kspace{margin-top:16px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:10px}
+.khead{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.save{font-size:.85rem;color:var(--muted)}
+#kPanel{display:grid;gap:10px}
+#kPanel[hidden]{display:none}
+#kList{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+#kList li{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--bg)}
+#kList li.cur{border-color:var(--accent)}
+#kList .who{font-weight:700}
+#kList .when{font-size:.82rem;color:var(--muted);display:block;font-weight:400}
+#kList .btns{display:flex;gap:6px}
+#done[hidden]{display:none}
 @media (max-width:600px){.actions{position:static}}
 @media print{.actions,#out,button{display:none!important} body{background:#fff} fieldset{break-inside:avoid}}
 </style>
@@ -72,10 +84,21 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
   <p class="sub" style="font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase">Fiche programme · patient puis kiné</p>
   <h1>Fiche programme patient</h1>
   <p class="sub">Le patient remplit la partie 1 (3 minutes, en salle d'attente), le kiné complète la partie 2. Le kiné décide du contenu du programme et le relit avant qu'il soit remis au patient.</p>
-  <p class="note"><b>Pas de nom de famille, pas de date de naissance, pas de numéro de dossier.</b> Un prénom ou des initiales suffisent. Cette page n'enregistre et n'envoie rien : les informations ne quittent l'appareil que lorsque le kiné copie la fiche pour l'envoyer.</p>
+  <p class="note"><b>Pas de nom de famille, pas de date de naissance, pas de numéro de dossier.</b> Un prénom ou des initiales suffisent. Rien n'est envoyé en ligne. La fiche est enregistrée <b>uniquement sur cet appareil</b> le temps de la compléter, puis supprimée après l'envoi (ou au bout de 30 jours).</p>
 </header>
 
 <noscript><p class="note" style="margin-top:12px"><b>Cette page est ouverte en aperçu : elle ne peut pas fonctionner ainsi.</b> Ouvrez-la dans Safari ou Chrome (bouton de partage → « Ouvrir dans Safari »).</p></noscript>
+<section class="kspace" id="kspace">
+  <div class="khead">
+    <button type="button" class="ghost" id="kToggle" aria-expanded="false" aria-controls="kPanel">Espace kiné</button>
+    <span id="saveState" class="save" role="status"></span>
+  </div>
+  <div id="kPanel" hidden>
+    <p class="sub" style="margin:0">Fiches en cours sur cet appareil. Elles sont supprimées après l'envoi, ou automatiquement au bout de 30 jours.</p>
+    <ul id="kList"></ul>
+    <div><button type="button" id="kNew">+ Nouvelle fiche</button></div>
+  </div>
+</section>
 <form id="f" autocomplete="off">
 <div class="part"><span>Partie 1</span><b>À remplir par le patient</b></div>
 <fieldset>
@@ -171,6 +194,7 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
   <button type="button" id="share" hidden>Partager la fiche</button>
   <button type="button" id="copy">Copier la fiche</button>
   <button type="button" class="ghost" id="dl">Télécharger (.txt)</button>
+  <button type="button" class="ghost" id="done" hidden>J'ai envoyé la fiche : la supprimer</button>
   <button type="button" class="ghost" id="reset">Vider la fiche</button>
   <span id="msg" role="status"></span>
 </div>
@@ -298,30 +322,104 @@ function ok(){
   const box=consent.closest('.consent');box.classList.add('miss');box.scrollIntoView({behavior:'smooth',block:'center'});
   say('Le patient doit d\'abord cocher son accord (partie 1).',true);return false;
 }
-const shareBtn=document.getElementById('share'), copyBtn=document.getElementById('copy');
+const shareBtn=document.getElementById('share'), copyBtn=document.getElementById('copy'), doneBtn=document.getElementById('done');
 if(navigator.share){shareBtn.hidden=false;copyBtn.classList.add('ghost');}
+
+/* ---------- brouillons enregistrés sur l'appareil ---------- */
+const KEY='fiche-kine-brouillons', TTL=30*24*3600*1000, DEMO=/[?&]exemple\b/.test(location.search);
+const store={get(){try{const d=JSON.parse(localStorage.getItem(KEY)||'{}');return d&&typeof d==='object'?d:{};}catch(e){return null;}},
+  set(d){try{localStorage.setItem(KEY,JSON.stringify(d));return true;}catch(e){return false;}}};
+const saveState=document.getElementById('saveState');
+let curId=null, timer=null;
+const fmtDate=t=>new Date(t).toLocaleString('fr-BE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+function snapshot(){
+  const d={fields:{},checks:{},ex:[]};
+  [...f.elements].forEach(el=>{if(!el.name)return;d.fields[el.name]=el.value;});
+  ['jours','materiel','sel'].forEach(g=>{d.checks[g]=[...document.querySelectorAll('#'+g+' input:checked')].map(i=>i.value);});
+  d.consent=consent.checked;
+  list.querySelectorAll('.ex').forEach(e=>{const o={};e.querySelectorAll('[data-k]').forEach(i=>o[i.dataset.k]=i.value);d.ex.push(o);});
+  return d;
+}
+function isEmpty(d){return !Object.values(d.fields).some(v=>v&&v!=='Intermédiaire')&&!Object.values(d.checks).some(a=>a.length)&&!d.consent&&!d.ex.some(o=>Object.entries(o).some(([k,v])=>k!=='seance'&&v));}
+function restore(d){
+  HTMLFormElement.prototype.reset.call(f);list.innerHTML='';
+  Object.entries(d.fields||{}).forEach(([k,v])=>{const el=f.elements[k];if(el&&!el.length)el.value=v;else if(el&&el.tagName==='SELECT')el.value=v;});
+  ['jours','materiel','sel'].forEach(g=>{const vals=(d.checks||{})[g]||[];document.querySelectorAll('#'+g+' input').forEach(i=>i.checked=vals.includes(i.value));});
+  consent.checked=!!d.consent;consent.closest('.consent').classList.remove('miss');
+  const ex=(d.ex&&d.ex.length)?d.ex:[{},{},{}];
+  ex.forEach(o=>{addEx();const e=list.lastElementChild;Object.entries(o).forEach(([k,v])=>{const i=e.querySelector('[data-k="'+k+'"]');if(i)i.value=v;});});
+  out.value='';out.style.display='none';
+}
+function label(d){return ((d.fields&&d.fields.patient)||'').trim()||'Sans prénom';}
+function purge(){const all=store.get();if(!all)return;let ch=false;const now=Date.now();Object.keys(all).forEach(k=>{if(now-all[k].savedAt>TTL){delete all[k];ch=true;}});if(ch)store.set(all);}
+function save(){
+  if(DEMO)return;
+  const d=snapshot();
+  const all=store.get();if(all===null){saveState.textContent='Sauvegarde indisponible sur ce navigateur : envoyez la fiche avant de fermer la page.';return;}
+  if(isEmpty(d)){if(curId&&all[curId]){delete all[curId];store.set(all);}renderList();saveState.textContent='';return;}
+  if(!curId)curId='f'+Date.now().toString(36);
+  const now=Date.now();
+  all[curId]={createdAt:(all[curId]&&all[curId].createdAt)||now,savedAt:now,data:d};
+  saveState.textContent=store.set(all)?'Enregistré sur cet appareil à '+new Date(now).toLocaleTimeString('fr-BE',{hour:'2-digit',minute:'2-digit'}):'Sauvegarde impossible : envoyez la fiche avant de fermer la page.';
+  doneBtn.hidden=false;renderList();
+}
+const queue=()=>{clearTimeout(timer);timer=setTimeout(save,400);};
+f.addEventListener('input',queue);f.addEventListener('change',queue);
+list.addEventListener('click',e=>{if(e.target.closest('button'))setTimeout(queue,0);});
+document.getElementById('addEx').addEventListener('click',()=>setTimeout(queue,0));
+
+function remove(id){const all=store.get();if(all&&all[id]){delete all[id];store.set(all);}if(id===curId){curId=null;restore({});doneBtn.hidden=true;saveState.textContent='';}renderList();}
+function renderList(){
+  const ul=document.getElementById('kList');const all=store.get()||{};
+  const items=Object.entries(all).sort((a,b)=>b[1].savedAt-a[1].savedAt);
+  ul.innerHTML='';
+  if(!items.length){ul.innerHTML='<li><span class="sub">Aucune fiche en cours.</span></li>';return;}
+  items.forEach(([id,r])=>{
+    const li=document.createElement('li');if(id===curId)li.className='cur';
+    const w=document.createElement('span');w.className='who';w.textContent=label(r.data);
+    const when=document.createElement('span');when.className='when';when.textContent=(id===curId?'Ouverte · ':'')+'commencée le '+fmtDate(r.createdAt)+' · modifiée le '+fmtDate(r.savedAt);w.appendChild(when);
+    const b=document.createElement('span');b.className='btns';
+    const open=document.createElement('button');open.type='button';open.className='ghost small';open.textContent='Reprendre';
+    open.addEventListener('click',()=>{save();curId=id;restore(r.data);doneBtn.hidden=false;saveState.textContent='Fiche « '+label(r.data)+' » reprise.';renderList();window.scrollTo({top:document.getElementById('f').offsetTop-10,behavior:'smooth'});});
+    const del=document.createElement('button');del.type='button';del.className='ghost small';del.textContent='Supprimer';
+    del.addEventListener('click',()=>{if(confirm('Supprimer la fiche « '+label(r.data)+' » de cet appareil ?'))remove(id);});
+    if(id!==curId)b.appendChild(open);b.appendChild(del);
+    li.appendChild(w);li.appendChild(b);ul.appendChild(li);
+  });
+}
+const kToggle=document.getElementById('kToggle'), kPanel=document.getElementById('kPanel');
+kToggle.addEventListener('click',()=>{const o=kPanel.hidden;kPanel.hidden=!o;kToggle.setAttribute('aria-expanded',String(o));if(o)renderList();});
+document.getElementById('kNew').addEventListener('click',()=>{save();curId=null;restore({});doneBtn.hidden=true;saveState.textContent='Nouvelle fiche vierge.';renderList();window.scrollTo({top:document.getElementById('f').offsetTop-10,behavior:'smooth'});});
+function sent(){if(curId)remove(curId);else{restore({});}saveState.textContent='Fiche envoyée et supprimée de cet appareil.';}
+doneBtn.addEventListener('click',()=>{if(confirm('La fiche a bien été envoyée ? Elle sera supprimée de cet appareil.'))sent();});
+purge();renderList();
+if(DEMO)saveState.textContent='Fiche d\'exemple : rien n\'est enregistré.';
+
 shareBtn.addEventListener('click',async()=>{
   if(!ok())return;
   const t=build();out.value=t;out.style.display='block';
   const who=(f.elements.patient.value||'').trim();
-  try{await navigator.share({title:'Fiche programme'+(who?' – '+who:''),text:t});say('Fiche partagée.');}
+  try{await navigator.share({title:'Fiche programme'+(who?' – '+who:''),text:t});sent();say('Fiche partagée.');}
   catch(e){if(e&&e.name==='AbortError')return;say('Le partage n\'a pas marché : utilisez « Copier la fiche ».',true);}
 });
 copyBtn.addEventListener('click',async()=>{
   if(!ok())return;
   const t=build();out.value=t;out.style.display='block';
-  try{await navigator.clipboard.writeText(t);say('Fiche copiée. Collez-la dans votre message.');}
-  catch(e){out.select();try{document.execCommand('copy');say('Fiche copiée. Collez-la dans votre message.');}catch(_){say('Sélectionnez le texte ci-dessous et copiez-le.');}}
+  const done=m=>{say(m);if(!DEMO)doneBtn.hidden=false;};
+  try{await navigator.clipboard.writeText(t);done('Fiche copiée. Après l\'envoi, touchez « J\'ai envoyé la fiche ».');}
+  catch(e){out.select();try{document.execCommand('copy');done('Fiche copiée. Après l\'envoi, touchez « J\'ai envoyé la fiche ».');}catch(_){say('Sélectionnez le texte ci-dessous et copiez-le.');}}
 });
 document.getElementById('dl').addEventListener('click',()=>{
   if(!ok())return;
   const t=build();const p=(f.elements.patient.value||'patient').trim().replace(/[^\p{L}\p{N}]+/gu,'-');
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/plain;charset=utf-8'}));
   a.download='fiche-'+p+'.txt';document.body.appendChild(a);a.click();a.remove();
+  if(!DEMO)doneBtn.hidden=false;
 });
 document.getElementById('reset').addEventListener('click',()=>{
-  if(!confirm('Vider toute la fiche ?'))return;
-  f.reset();list.innerHTML='';addEx();addEx();addEx();out.value='';out.style.display='none';
+  if(!confirm('Vider la fiche et la supprimer de cet appareil ?'))return;
+  if(curId)remove(curId);else restore({});
+  saveState.textContent='';
 });
 })();
 </script>
