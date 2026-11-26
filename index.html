@@ -101,7 +101,7 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 <body>
 <div class="wrap">
 <header>
-  <nav class="langs" hidden aria-label="Langue · Language · Lingua · Idioma"><button type="button" data-lang="fr" lang="fr">FR</button><button type="button" data-lang="en" lang="en">EN</button><button type="button" data-lang="it" lang="it">IT</button><button type="button" data-lang="es" lang="es">ES</button></nav>
+  <nav class="langs" aria-label="Langue · Language · Lingua · Idioma"><button type="button" data-lang="fr" lang="fr">FR</button><button type="button" data-lang="en" lang="en">EN</button><button type="button" data-lang="it" lang="it">IT</button><button type="button" data-lang="es" lang="es">ES</button></nav>
   <p class="sub" style="font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase">Fiche programme · patient puis kiné</p>
   <h1>Fiche programme patient</h1>
   <p class="sub">Le patient remplit la partie 1 (3 minutes, en salle d'attente), le kiné complète la partie 2. Le kiné décide du contenu du programme et le relit avant qu'il soit remis au patient.</p>
@@ -237,7 +237,7 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 <script>
 /* Traductions de l'interface : clé = texte français exact, valeur = [anglais, italien, espagnol].
    Les exercices viennent de #i18n-ex (généré par outils/bibliotheque.py).
-   VALIDE : suivi interne (rien n'est affiché) ; true = langue relue par un kiné de cette langue et consentement validé par le juriste ; affiche aussi le sélecteur de langue. */
+   VALIDE : suivi interne (rien n'est affiché) ; true = langue relue par un kiné de cette langue et consentement validé par le juriste . */
 const VALIDE={en:false,it:false,es:false};
 const UI={
 "Fiche programme":["Programme form","Scheda programma","Ficha de programa"],
@@ -722,8 +722,6 @@ document.getElementById('reset').addEventListener('click',()=>{
 function applyLang(){
   document.documentElement.lang=LANG;document.title=t('Fiche programme');
   tr(document.body);
-  /* Sélecteur visible seulement avec ?lang=… (ou une langue déjà choisie, ou une traduction validée) : les patients d'Éric voient la fiche française inchangée */
-  document.querySelector('.langs').hidden=LANG==='fr'&&!/[?&]lang=/.test(location.search)&&!Object.values(VALIDE).some(Boolean);
   document.querySelectorAll('.langs button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.lang===LANG)));
   renum();filterSel();renderList();out.value='';out.style.display='none';msg.textContent='';
 }
